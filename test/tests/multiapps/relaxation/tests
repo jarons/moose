@@ -1,0 +1,16 @@
+[Tests]
+  [./Standard]
+    type = 'Exodiff'
+    input = 'picard_master.i'
+    exodiff = 'picard_master_out.e'
+    rel_err = 5e-5  # Loosened for recovery tests
+  [../]
+
+  [./Relaxed]
+    type = 'Exodiff'
+    input = 'picard_relaxed_master.i'
+    exodiff = 'picard_relaxed_master_out.e'
+    rel_err = 5e-5  # Loosened for recovery tests
+  [../]
+
+[]

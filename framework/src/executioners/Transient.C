@@ -24,6 +24,8 @@
 #include "NonlinearSystem.h"
 #include "Control.h"
 #include "TimePeriod.h"
+#include "MooseMesh.h"
+#include "AllLocalDofIndicesThread.h"
 
 // libMesh includes
 #include "libmesh/implicit_system.h"
@@ -126,6 +128,12 @@ validParams<Transient>()
       std::numeric_limits<unsigned int>::max(),
       "Maximum number of times to update XFEM crack topology in a step due to evolving cracks");
 
+  params.addParam<Real>("relaxation_factor",1.0,"Fraction of newly computed value to keep."
+      "Set between 0 and 2.");
+  params.addParam<std::vector<std::string>>("relaxed_variables",std::vector<std::string>(),
+      "List of variables to relax during Picard Iteration");
+
+  params.addParamNamesToGroup("relaxation_factor relaxed_variables", "Picard");
   return params;
 }
 
@@ -173,7 +181,10 @@ Transient::Transient(const InputParameters & parameters)
     _picard_rel_tol(getParam<Real>("picard_rel_tol")),
     _picard_abs_tol(getParam<Real>("picard_abs_tol")),
     _verbose(getParam<bool>("verbose")),
-    _sln_diff(_problem.getNonlinearSystemBase().addVector("sln_diff", false, PARALLEL))
+    _sln_diff(_problem.getNonlinearSystemBase().addVector("sln_diff", false, PARALLEL)),
+    _relax_factor(getParam<Real>("relaxation_factor")),
+    _prev_time(_start_time-1.0),
+    _relaxed_vars(getParam<std::vector<std::string>>("relaxed_variables"))
 {
   _problem.getNonlinearSystemBase().setDecomposition(_splitting);
   _t_step = 0;
@@ -203,6 +214,16 @@ Transient::Transient(const InputParameters & parameters)
     if (_num_steps == 0) // Always do one step in the first half
       _num_steps = 1;
   }
+
+  NonlinearSystem & _nl_system = _fe_problem.getNonlinearSystem();
+  System & libmesh_nl_system = _nl_system.system();
+
+    // We'll store a copy of the auxiliary system's solution at the previous 
+    // Picard Iteration in here
+  libmesh_nl_system.add_vector("relax_previous", false);
+
+    // This will be where we'll transfer the value to for the "target" time
+  libmesh_nl_system.add_vector("relax", false);
 }
 
 void
@@ -438,7 +459,48 @@ Transient::solveStep(Real input_dt)
   // Update warehouse active objects
   _problem.updateActiveObjects();
 
+  if (_prev_time==_time) // _pic_it > 0
+  {
+    NonlinearSystem & _nl_system = _fe_problem.getNonlinearSystem();
+    System & libmesh_nl_system = _nl_system.system();
+    NumericVector<Number> & solution = *libmesh_nl_system.solution;
+    NumericVector<Number> & relax_previous = libmesh_nl_system.get_vector("relax_previous");
+    solution.close();
+
+    // Save off the current solution
+    relax_previous = solution;
+    relax_previous.close();
+
+    // Snag all of the local dof indices for all of these variables
+    AllLocalDofIndicesThread aldit(libmesh_nl_system, _relaxed_vars);
+    ConstElemRange & elem_range = *_fe_problem.mesh().getActiveLocalElementRange();
+    Threads::parallel_reduce(elem_range, aldit);
+
+    _relaxed_dofs = aldit._all_dof_indices;
+  }
+
+
   _time_stepper->step();
+
+  if (_prev_time==_time)//_pic_it>0
+  {
+    NonlinearSystem & _nl_system = _fe_problem.getNonlinearSystem();
+    System & libmesh_nl_system = _nl_system.system();
+    NumericVector<Number> & solution = *libmesh_nl_system.solution;
+    NumericVector<Number> & relax = libmesh_nl_system.get_vector("relax");
+    NumericVector<Number> & relax_previous = libmesh_nl_system.get_vector("relax_previous");
+    relax = solution;
+    solution.close();
+    relax.close();
+    relax_previous.close();
+    for (const auto & dof : _relaxed_dofs)
+    {
+      solution.set(dof, (relax_previous(dof) * (1.0 - _relax_factor)) +
+                       (relax(dof) * _relax_factor) );
+    }
+    solution.close();
+  }
+  _prev_time = _time; // keeps track of Picard iteration even if this is the sub-app 
 
   // We know whether or not the nonlinear solver thinks it converged, but we need to see if the
   // executioner concurs
