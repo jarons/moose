@@ -238,6 +238,7 @@
 #include "BicrystalCircleGrainICAction.h"
 #include "CHPFCRFFSplitKernelAction.h"
 #include "CHPFCRFFSplitVariablesAction.h"
+#include "ConservedAction.h"
 #include "DisplacementGradientsAction.h"
 #include "EulerAngle2RGBAction.h"
 #include "HHPFCRFFSplitKernelAction.h"
@@ -515,6 +516,7 @@ PhaseFieldApp::associateSyntax(Syntax & syntax, ActionFactory & action_factory)
   registerSyntax("BicrystalCircleGrainICAction", "ICs/PolycrystalICs/BicrystalCircleGrainIC");
   registerSyntax("CHPFCRFFSplitKernelAction", "Kernels/CHPFCRFFSplitKernel");
   registerSyntax("CHPFCRFFSplitVariablesAction", "Variables/CHPFCRFFSplitVariables");
+  registerSyntax("ConservedAction", "Modules/PhaseField/Conserved/*");
   registerSyntax("DisplacementGradientsAction", "Modules/PhaseField/DisplacementGradients");
   registerSyntax("EmptyAction", "ICs/PolycrystalICs"); // placeholder
   registerSyntax("EulerAngle2RGBAction", "Modules/PhaseField/EulerAngles2RGB");
@@ -542,6 +544,8 @@ PhaseFieldApp::associateSyntax(Syntax & syntax, ActionFactory & action_factory)
   registerAction(BicrystalCircleGrainICAction, "add_ic");
   registerAction(CHPFCRFFSplitKernelAction, "add_kernel");
   registerAction(CHPFCRFFSplitVariablesAction, "add_variable");
+  registerAction(ConservedAction, "add_variable");
+  registerAction(ConservedAction, "add_kernel");
   registerAction(DisplacementGradientsAction, "add_kernel");
   registerAction(DisplacementGradientsAction, "add_material");
   registerAction(DisplacementGradientsAction, "add_variable");
