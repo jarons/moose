@@ -92,7 +92,6 @@
 #include "VolumeDeformGradCorrectedStress.h"
 #include "ComputeMultipleInelasticStress.h"
 #include "ComputeMultipleInelasticCosseratStress.h"
-#include "RadialReturnStressUpdate.h"
 #include "IsotropicPlasticityStressUpdate.h"
 #include "IsotropicPowerLawHardeningStressUpdate.h"
 #include "PowerLawCreepStressUpdate.h"
@@ -298,7 +297,6 @@ TensorMechanicsApp::registerObjects(Factory & factory)
   registerMaterial(VolumeDeformGradCorrectedStress);
   registerMaterial(ComputeMultipleInelasticStress);
   registerMaterial(ComputeMultipleInelasticCosseratStress);
-  registerMaterial(RadialReturnStressUpdate);
   registerMaterial(IsotropicPlasticityStressUpdate);
   registerMaterial(IsotropicPowerLawHardeningStressUpdate);
   registerMaterial(PowerLawCreepStressUpdate);
