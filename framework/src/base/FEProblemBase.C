@@ -4890,6 +4890,8 @@ FEProblemBase::setRestartFile(const std::string & file_name)
 {
   _app.setRestart(true);
   _resurrector->setRestartFile(file_name);
+  if (_app.getRecoverFileSuffix() == "cpa")
+    _resurrector->setRestartSuffix("xda");
 }
 
 std::vector<VariableName>
