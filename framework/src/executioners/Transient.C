@@ -27,7 +27,6 @@
 #include "MooseMesh.h"
 #include "AllLocalDofIndicesThread.h"
 
-// libMesh includes
 #include "libmesh/implicit_system.h"
 #include "libmesh/nonlinear_implicit_system.h"
 #include "libmesh/transient_system.h"
