@@ -192,7 +192,6 @@
 #include "DomainIntegralAction.h"
 #include "DomainIntegralQFunction.h"
 #include "DomainIntegralTopologicalQFunction.h"
-#include "InteractionIntegralAuxFields.h"
 #include "InteractionIntegralBenchmarkBC.h"
 #include "MixedModeEquivalentK.h"
 #include "EshelbyTensor.h"
@@ -333,7 +332,6 @@ TensorMechanicsApp::registerObjects(Factory & factory)
   registerMaterial(ComputeInterfaceStress);
   registerMaterial(TensileStressUpdate);
   registerMaterial(ComputeFiniteStrainElasticStressBirchMurnaghan);
-  registerMaterial(InteractionIntegralAuxFields);
   registerMaterial(EshelbyTensor);
 
   registerUserObject(TensorMechanicsPlasticSimpleTester);
@@ -483,5 +481,4 @@ TensorMechanicsApp::associateSyntax(Syntax & syntax, ActionFactory & action_fact
   registerAction(DomainIntegralAction, "add_aux_variable");
   registerAction(DomainIntegralAction, "add_aux_kernel");
   registerAction(DomainIntegralAction, "add_postprocessor");
-  registerAction(DomainIntegralAction, "add_material");
 }
